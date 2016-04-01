@@ -30,9 +30,11 @@ class Model:
 		elif self.modelType=="BeliefDecay":
 			self.modelClass="Epistemic"
 			self.explicitPriors=False
-		elif self.modelType="ExplicitEpistemic":
+		elif self.modelType=="ExplicitEpistemic":
 			self.modelClass="Epistemic"
 			self.explicitPriors=True
+		elif: self.modelType=="RSAwithBeliefDecay":
+			#need to define this one
 		else: raise ValueError("Invalid model type")
 
 
