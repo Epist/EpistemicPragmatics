@@ -20,3 +20,35 @@ def convertPriorsToRSA(priors):
 
 
 #Maybe write some code that allows graphical or at least intuitive editing of the matrices
+
+
+def modelPerturbation(model):
+	#Creates a perturbed version of a model for use as a ground truth world (an actual speaker)
+	#It perturbs the model belief positions, not the belief strengths
+
+def modelReification(epistemicModel):
+	#Creates an RSA model from an epistemci model for the purposes of model comparison
+
+def modelComparison(baseModel, model2):
+	#Evaluates how well a given model
+
+def modelEvaluation(model, world):
+	#Returns the probability of a model making the correct predictions given a world (or an objective speaker)
+	#Is given by KL(world||model)
+	modelShape=np.shape(model)
+	worldShape=np.shape(world)
+	if modelShape!=worldShape:
+		raise ValueError("Model and world are not of the same shape")
+	else:
+		kl=0
+		for i, x in np.ndenumerate(world):
+			kl=kl+world[i]*np.log(float(world[i])/model[i])
+	return kl
+
+
+def getBeliefDistance(model1, model2):
+	#Returns the distance between the locations of the belief distributions independent of the degree of uncertainty
+	#The models may alternatively be worlds
+
+
+	#A good measure for this needs to be derived. I should try it and then talk to Ed Vul for verification
