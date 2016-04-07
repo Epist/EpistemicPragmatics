@@ -1,6 +1,12 @@
 #This utilities class contains the functions required to evaluate and compare models
 import numpy as np
 
+def mutualInformation(m1, m2):
+	Computes the mutual information between two distributions
+	joint=np.outer(m1,m2)
+	MI=joint*np.log(joint/(m1*m2))
+	return MI
+
 #Add a function that converts an RSA style lexicon to an epismteic-style lexicon
 
 #Add a function that converts an RSA style prior distribution to an epismteic-style belief distribution
@@ -30,7 +36,12 @@ def modelReification(epistemicModel):
 	#Creates an RSA model from an epistemci model for the purposes of model comparison
 
 def modelComparison(baseModel, model2):
-	#Evaluates how well a given model
+	#Evaluates how similar a given model is to another model
+		#This is different from getBeliefDistance in that it compares the unnormalized versions of the models.
+	MIs=np.arraylike(baseModel[0])
+	for i in range(np.shape(baseModel)[0]):
+		MIs[i] = mutualInformation(baseModel[i,:], Model2[i,:])
+	return np.mean(MIs) #Return the average mutual information
 
 def modelEvaluation(model, world):
 	#Returns the probability of a model making the correct predictions given a world (or an objective speaker)
@@ -46,9 +57,56 @@ def modelEvaluation(model, world):
 	return kl
 
 
-def getBeliefDistance(model1, model2):
+def getBeliefDistance(model1, model2, precision):
 	#Returns the distance between the locations of the belief distributions independent of the degree of uncertainty
 	#The models may alternatively be worlds
 
+	#As a measure for this, we use the mutual information between belief shapes (that is, entropy-normed mutual information)
+	normedM1=findBeliefShape(model1, precision)
+	normedM2=findBeliefShape(model2, precision)
+	return modelComparison(normedM1,normedM2)
 
-	#A good measure for this needs to be derived. I should try it and then talk to Ed Vul for verification
+
+
+def entropy(dist):
+    ent=0
+    for i,x in np.ndenumerate(dist):
+        ent = ent+x*np.log(x)
+    return -ent
+def scaleDist(dist, alpha):
+    unNorm=np.power(dist, alpha)*dist
+    return unNorm/sum(unNorm)
+
+def findUpperBound(dist, desiredVal, bound):
+    value = entropy(scaleDist(dist, bound))
+    if value>desiredVal:
+        newBound=np.power(bound, 2)
+        return findUpperBound(dist, desiredVal, newBound)
+    else:
+        return bound
+def binSearch(upper, lower, precision, dist, desiredEval):
+    newTry=((float(upper)-lower)/2)+lower
+    value=entropy(scaleDist(dist, newTry))
+    #print value
+    #print newTry
+    if (value+precision>desiredEval) and (value-precision<desiredEval):
+        #If within tolerance
+        return newTry
+    elif value>desiredEval:
+        newLower=newTry
+        return binSearch(upper, newLower, precision, dist, desiredEval)
+    elif value<desiredEval:
+        newUpper=newTry
+        return binSearch(newUpper, lower, precision, dist, desiredEval)
+    
+def findBeliefStrength(dist, precision):
+    #A numerical algorithm for finding the belief strength of a distribution to a given precision
+    entropyNorm=np.log(np.size(dist))/2
+    #precision = 0.0001
+    uBound=findUpperBound(dist, entropyNorm, 2)
+    beliefStrength=binSearch(uBound, 0, precision, dist, entropyNorm)
+    return beliefStrength
+
+def findBeliefShape(dist, precision):
+    stren = findBeliefStrength(dist, precision)
+    return scaleDist(dist, stren)

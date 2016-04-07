@@ -105,9 +105,15 @@ class Model:
 		#Need to check if there are explicit priors and perform something different on them
 
 	def __beliefStrengthMod(modelPreds):
-		return rownorm(np.exp(self.beliefStrength*safelog(modelPreds)))
+		return rownorm(np.power(modelPreds, self.beliefStrength))
+		#return rownorm(np.exp(self.beliefStrength*safelog(modelPreds)))
 
 
 		#Need to work on whether decaying belief strength or fixed belief strength is the right way to perform this
 		#Need to figure out whether to apply belief strength mod to priors or to full model
 		#Need to get rid of global variable for current beleif strength...
+
+
+
+
+	
