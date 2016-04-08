@@ -1,19 +1,20 @@
 #This file contains the model definitions and the code for building/specifying a particular model
 import numpy as np
-import utilities
+import utilities as util
 import pragmodsUtils
 
 class Model:
 	def __init__(self,
-			modelType=NULL,
-			priors=NULL,
-			mappings=NULL, # A numpy matrix with rows as utterances and columns as meanings
-			meanings=NULL, #List of strings length |meanings|
-			utterances=NULL, #List of strings length |utterances|
-			lexicon=NULL,#Specify this if using an RSA model
+			modelType=None,
+			priors=None,
+			mappings=None, # A numpy matrix with rows as utterances and columns as meanings
+			meanings=None, #List of strings length |meanings|
+			utterances=None, #List of strings length |utterances|
+			lexicon=None,#Specify this if using an RSA model
 			beliefStrength=1,
 			alpha=1.0,
-			maxDepth=0): #Default is 0, which does not limit recursion depth
+			maxDepth=0,#Default is 0, which does not limit recursion depth
+			precision=0.0001): #Default precision for operations that require it
 		self.modelType = modelType
 		self.mappings=np.matrix(mappings)
 		self.meanings=meanings
@@ -22,6 +23,7 @@ class Model:
 		self.beliefStrength=beliefStrength
 		self.alpha=alpha
 		self.maxDepth=maxDepth
+		self.precision=precision
 
 		#Set other paramaters based on the model type specified
 		if self.modelType=="RSA":
@@ -33,9 +35,10 @@ class Model:
 		elif self.modelType=="ExplicitEpistemic":
 			self.modelClass="Epistemic"
 			self.explicitPriors=True
-		elif: self.modelType=="RSAwithBeliefDecay":
+		#elif self.modelType=="RSAwithBeliefDecay":
 			#need to define this one
-		else: raise ValueError("Invalid model type")
+		else:
+			raise ValueError("Invalid model type")
 
 
 		if self.modelClass=="RSA":
@@ -59,7 +62,7 @@ class Model:
 				modelState=__computeRecursion(modelState, interlocType)
 				#Now flip the interlocutor type
 				if interlocType=="speaker": interlocType="listener"
-				elif: interlocType=="listener": interlocType="speaker"
+				elif interlocType=="listener": interlocType="speaker"
 				else: raise ValueError("Unknown interlocutor type")
 		return modelState
 
@@ -91,10 +94,11 @@ class Model:
 				return rownorm(modelState.T * self.priors)
 
 
-		if self.modelClass=="Epistemic"
+		elif self.modelClass=="Epistemic":
 			#Compute the epistemic model recursive step
 			if interlocType=="speaker":
 				#Compute the speaker recursion
+				rownorm(__beliefStrengthMod(modelState.T * self.priors))#This is a filler line!
 			elif interlocType=="listener":
 				#Compute the listener recursion
 				#Matrix multiply the transposed modelState with the priors and renormalize
@@ -105,7 +109,7 @@ class Model:
 		#Need to check if there are explicit priors and perform something different on them
 
 	def __beliefStrengthMod(modelPreds):
-		return rownorm(np.power(modelPreds, self.beliefStrength))
+		return util.scaleDist(modelPreds, self.beliefStrength)
 		#return rownorm(np.exp(self.beliefStrength*safelog(modelPreds)))
 
 
