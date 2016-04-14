@@ -1,6 +1,7 @@
 #This utilities class contains the functions required to evaluate and compare models
 import numpy as np
 import random
+from pragmodsUtils import rownorm, safelog
 
 def entropy(dist):
     return -np.sum(dist*np.log(dist))
@@ -31,7 +32,7 @@ def convertPriorsToRSA(priors):
 
 #Maybe write some code that allows graphical or at least intuitive editing of the matrices
 
-def randomModel(modelSize, precision=self.precision):
+def randomModel(modelSize, precision):
 	#Generates a random entropy-normalized epistemic model
 	#Do this by sampling random numbers for each entry and then entropy-normalizing the result
 	return findBeliefShape(np.random.rand(modelSize), precision)
@@ -46,11 +47,39 @@ def randomModel(modelSize, precision=self.precision):
 	#It is, however, possible to find the closest RSA model to the epistemic model by choosing lexicon entries as ones or zeros based on whether the associated probabilities are above or below the mean 
 
 
-#def epistToRSA(rsaModel):
-	#Creates an epistmeic model from an RSA model
+#def RSAtoEpist(rsaModel, relaxation):
+	#Creates an RSA model from an epistemic model
 	#Do I need to add a base-uncertainty paramater by which to transform the full confidence to approximate confidence?
 	#The choice of paramater will affect the belief shape...
 	#Belief shapes are not well-defined for RSA models due to their lack of uncertainty
+
+def lexToMappingsRSAEquiv(lexicon, priors, relaxation, alpha=1):
+    #Converts an RSA style lexicon to an epistemic style mapping distribution using a relaxation paramater
+    #Does this by incorporating priors so that the Epistemic model reduces to the RSA model when the belief strength is 1
+    mappings=np.zeros_like(lexicon)
+    for i, x in np.ndenumerate(lexicon):
+        if x==1:
+            mappings[i]=1-relaxation
+        elif x==0:
+            mappings[i]=relaxation
+        else:
+            raise ValueError("Lexicon is incorrectly specified")
+    l0relaxed=(mappings*priors)#To match RSA listener-centric assumptions
+    return rownorm(np.exp((alpha*safelog(rownorm(l0relaxed).T))))#To make equivalent to RSA model...
+    #return rownorm(rownorm(l0relaxed).T)#To make equivalent to RSA model...
+
+def lexToMappings(lexicon, relaxation):
+	#Converts an RSA style lexicon to an epistemic style mapping distribution using a relaxation paramater
+	mappings=np.zeros_like(lexicon)
+	for i, x in np.ndenumerate(lexicon):
+		if x==1:
+			mappings[i]=1-relaxation
+		elif x==0:
+			mappings[i]=relaxation
+		else:
+			raise ValueError("Lexicon is incorrectly specified")
+	return rownorm(mappings.T)
+
 
 def modelComparison(baseModel, model2):
 	#Evaluates how similar a given model is to another model
@@ -74,7 +103,7 @@ def modelEvaluation(model, world):
 	return kl
 
 
-def getBeliefDistance(model1, model2, precision=self.precision):
+def getBeliefDistance(model1, model2, precision):
 	#Returns the distance between the locations of the belief distributions independent of the degree of uncertainty
 	#The models may alternatively be worlds
 
@@ -86,8 +115,8 @@ def getBeliefDistance(model1, model2, precision=self.precision):
 
 
 def scaleDist(dist, alpha):
-    unNorm=np.power(dist, alpha)*dist
-    return unNorm/sum(unNorm)
+    unNorm=np.power(dist, alpha)
+    return rownorm(unNorm)
 
 def findUpperBound(dist, desiredVal, bound):
     value = entropy(scaleDist(dist, bound))
@@ -96,7 +125,7 @@ def findUpperBound(dist, desiredVal, bound):
         return findUpperBound(dist, desiredVal, newBound)
     else:
         return bound
-def binSearch(upper, lower, dist, desiredEval, precision=self.precision):
+def binSearch(upper, lower, dist, desiredEval, precision):
     newTry=((float(upper)-lower)/2)+lower
     value=entropy(scaleDist(dist, newTry))
     #print value
@@ -111,7 +140,7 @@ def binSearch(upper, lower, dist, desiredEval, precision=self.precision):
         newUpper=newTry
         return binSearch(newUpper, lower, dist, desiredEval, presion)
     
-def findBeliefStrength(dist, precision=self.precision):
+def findBeliefStrength(dist, precision):
     #A numerical algorithm for finding the belief strength of a distribution to a given precision
     entropyNorm=np.log(np.size(dist))/2
     #precision = 0.0001
@@ -119,6 +148,14 @@ def findBeliefStrength(dist, precision=self.precision):
     beliefStrength=binSearch(uBound, 0, dist, entropyNorm, precision)
     return beliefStrength
 
-def findBeliefShape(dist, precision=self.precision):
+def findBeliefShape(dist, precision):
     stren = findBeliefStrength(dist, precision)
     return scaleDist(dist, stren)
+
+
+def uniformPriors(mappings):
+	mapShape=np.shape(mappings)
+	return np.ones(mapShape[1])/mapShape[1]
+
+
+    #Need plotting and visualization code as well
