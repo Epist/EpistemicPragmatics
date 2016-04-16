@@ -8,7 +8,8 @@ from pragmodsUtils import rownorm, safelog
 class PragmaticModel:
 	def __init__(self,
 			modelType=None,
-			priors=None,
+			meaningPriors=None,
+			utterancePriors=None,
 			mappings=None, # A numpy matrix with rows as utterances and columns as meanings
 			meanings=None, #List of strings length |meanings|
 			utterances=None, #List of strings length |utterances|
@@ -19,7 +20,8 @@ class PragmaticModel:
 			precision=0.0001): #Default precision for operations that require it
 
 		self.modelType = modelType
-		self.priors=np.array(priors)
+		self.meaningPriors=np.array(meaningPriors)
+		self.utterancePriors=np.array(utterancePriors)
 		#self.mappings=np.matrix(mappings)
 		self.mappings=mappings
 		self.meanings=meanings
@@ -42,20 +44,25 @@ class PragmaticModel:
 			self.explicitPriors=True
 		#elif self.modelType=="RSAwithBeliefDecay":
 			#need to define this one
+		elif self.modelType=="StochasticRecursion":
+			#Do something that works for this...
+			self.explicitPriors=True
+		#elif self.modelType=="CoreEpistemic":
+
 		else:
 			raise ValueError("Invalid model type")
 
 
-		if self.priors==None:
+		if self.meaningPriors==None:
 			if self.modelClass=="Epistemic":
-				self.priors=util.uniformPriors(self.mappings)
+				self.meaningPriors=util.uniformPriors(self.mappings)
 			if self.modelClass=="RSA":
-				self.priors=util.uniformPriors(self.lexicon)
+				self.meaningPriors=util.uniformPriors(self.lexicon)
 
 
 		#if self.modelClass=="RSA":
-		#	self.priors=util.convertPriorsToRSA(self.priors)
-		#else: self.priors=np.matrix(self.priors)
+		#	self.meaningPriors=util.convertPriorsToRSA(self.meaningPriors)
+		#else: self.meaningPriors=np.matrix(self.meaningPriors)
 
 
 		#If the mappings are specified as a layer-dependent matrix, set the maxDepth
@@ -89,7 +96,7 @@ class PragmaticModel:
 		if self.modelClass=="RSA":
 			#Compute the RSA base case as per Chris Potts' Pragmods code
 			#Multiply the base probabilities with the prior and renormalize
-			return rownorm(self.lexicon * self.priors) #might need to margenalize epistemic priors to get RSA priors
+			return rownorm(self.lexicon * self.meaningPriors) #might need to margenalize epistemic priors to get RSA priors
 
 		if self.modelClass=="Epistemic":
 			#Compute the epistemic model base case
@@ -107,7 +114,7 @@ class PragmaticModel:
 				return rownorm(np.exp((self.alpha*safelog(modelState.T))))
 			elif interlocType=="listener":
 				#Compute the listener recursion
-				return rownorm(modelState.T * self.priors)
+				return rownorm(modelState.T * self.meaningPriors)
 
 
 		elif self.modelClass=="Epistemic":
@@ -118,9 +125,9 @@ class PragmaticModel:
 			elif interlocType=="listener":
 				#Compute the listener recursion
 				#Matrix multiply the transposed modelState with the priors and renormalize
-				return rownorm(self.beliefStrengthMod(modelState.T * self.priors))
-				#return rownorm(modelState.T * self.beliefStrengthMod(self.priors))
-				#return rownorm(self.beliefStrengthMod(modelState.T) * self.priors)
+				return rownorm(self.beliefStrengthMod(modelState.T * self.meaningPriors))
+				#return rownorm(modelState.T * self.beliefStrengthMod(self.meaningPriors))
+				#return rownorm(self.beliefStrengthMod(modelState.T) * self.meaningPriors)
 
 
 		#Need to check if there are explicit priors and perform something different on them
@@ -141,4 +148,4 @@ class PragmaticModel:
 
 
 
-	
+	#Write a function to display model predictions using the pragmodsUtils function
