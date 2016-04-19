@@ -3,7 +3,7 @@
 import numpy as np
 import utilities as util
 import pragmodsUtils
-from pragmodsUtils import rownorm, safelog
+from pragmodsUtils import rownorm, safelog, display_matrix
 
 class PragmaticModel:
 	def __init__(self,
@@ -149,3 +149,10 @@ class PragmaticModel:
 
 
 	#Write a function to display model predictions using the pragmodsUtils function
+	def display_speaker_matrix(self, mat, title='', digits=4):
+        #Pretty-printed (to stdout) speaker matrix to standard output
+		display_matrix(mat, title='%s' % title, rnames=self.meanings, cnames=self.utterances, digits=digits)
+
+	def display_listener_matrix(self, mat, title='', digits=4):
+        #Pretty-printed (to stdout) listener matrix to standard output
+		display_matrix(mat, title='%s' % title, rnames=self.utterances, cnames=self.meanings, digits=digits)

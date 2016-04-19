@@ -56,7 +56,7 @@ def randomModel(modelSize, precision):
 def lexToMappingsRSAEquiv(lexicon, priors, relaxation, alpha=1):
     #Converts an RSA style lexicon to an epistemic style mapping distribution using a relaxation paramater
     #Does this by incorporating priors so that the Epistemic model reduces to the RSA model when the belief strength is 1
-    mappings=np.zeros_like(lexicon)
+    mappings=np.zeros_like(lexicon, dtype='float64')
     for i, x in np.ndenumerate(lexicon):
         if x==1:
             mappings[i]=1-relaxation
@@ -70,7 +70,7 @@ def lexToMappingsRSAEquiv(lexicon, priors, relaxation, alpha=1):
 
 def lexToMappings(lexicon, relaxation):
 	#Converts an RSA style lexicon to an epistemic style mapping distribution using a relaxation paramater
-	mappings=np.zeros_like(lexicon)
+	mappings=np.zeros_like(lexicon, dtype='float64')
 	for i, x in np.ndenumerate(lexicon):
 		if x==1:
 			mappings[i]=1-relaxation
