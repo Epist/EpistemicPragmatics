@@ -53,31 +53,28 @@ def randomModel(modelSize, precision):
 	#The choice of paramater will affect the belief shape...
 	#Belief shapes are not well-defined for RSA models due to their lack of uncertainty
 
+def relaxLex(lexicon, relaxation):
+	relaxedLex=np.zeros_like(lexicon, dtype='float64')
+	for i, x in np.ndenumerate(lexicon):
+		if x==1:
+			relaxedLex[i]=1-relaxation
+		elif x==0:
+			relaxedLex[i]=relaxation
+		else:
+			raise ValueError("Lexicon is incorrectly specified")
+	return relaxedLex
+
 def lexToMappingsRSAEquiv(lexicon, priors, relaxation, alpha=1):
     #Converts an RSA style lexicon to an epistemic style mapping distribution using a relaxation paramater
     #Does this by incorporating priors so that the Epistemic model reduces to the RSA model when the belief strength is 1
-    mappings=np.zeros_like(lexicon, dtype='float64')
-    for i, x in np.ndenumerate(lexicon):
-        if x==1:
-            mappings[i]=1-relaxation
-        elif x==0:
-            mappings[i]=relaxation
-        else:
-            raise ValueError("Lexicon is incorrectly specified")
+    mappings=relaxLex(lexicon, relaxation)
     l0relaxed=(mappings*priors)#To match RSA listener-centric assumptions
     return rownorm(np.exp((alpha*safelog(rownorm(l0relaxed).T))))#To make equivalent to RSA model...
     #return rownorm(rownorm(l0relaxed).T)#To make equivalent to RSA model...
 
 def lexToMappings(lexicon, relaxation):
 	#Converts an RSA style lexicon to an epistemic style mapping distribution using a relaxation paramater
-	mappings=np.zeros_like(lexicon, dtype='float64')
-	for i, x in np.ndenumerate(lexicon):
-		if x==1:
-			mappings[i]=1-relaxation
-		elif x==0:
-			mappings[i]=relaxation
-		else:
-			raise ValueError("Lexicon is incorrectly specified")
+	mappings=relaxLex(lexicon, relaxation)
 	return rownorm(mappings.T)
 
 
@@ -154,8 +151,57 @@ def findBeliefShape(dist, precision):
 
 
 def uniformPriors(mappings):
-	mapShape=np.shape(mappings)
-	return np.ones(mapShape[1])/mapShape[1]
+	numMeanings=np.shape(mappings)[0]
+	return np.full(numMeanings, 1.0/numMeanings)	#mapShape=np.shape(mappings)
+	#return np.ones(mapShape[1])/mapShape[1]
+
+	
+def mergeLexica(lexica, relaxation, lexWeights=None):
+	#Merges lexica into an average lexicon
+	#For comparison with lexical uncertainty and similar margenalization models
+    numLexica=len(lexica)
+    if lexWeights==None:
+        lexWeights=np.full(numLexica, 1.0/numLexica)
+    if sum(lexWeights)!=1:
+        raise ValueError("Lexicon weights must sum to 1")
+    summed=np.zeros_like(lexica[0], dtype='float64')
+    for i, lex in enumerate(lexica):
+        summed=summed+lexWeights[i]*relaxLex(lex, relaxation)
+    return summed
+
+def mergeLexicaIntoMappings(lexica, relaxation, priors=None, lexWeights=None, alpha=1):
+	merged=mergeLexica(lexica, relaxation, lexWeights)
+	if priors==None:
+		numMeanings=np.shape(merged)[1]
+		priors=np.full(numMeanings, 1.0/numMeanings)
+	l0relaxed=(merged*priors)#To match RSA listener-centric assumptions
+	return rownorm(np.exp((alpha*safelog(rownorm(l0relaxed).T))))
 
 
-    #Need plotting and visualization code as well
+
+#This really needs to be a class with objects that can be edited (there are a lot of properties...)
+#Possibly a class that inherets from the matplotlib plotting class...
+def plotPredicitons(model, modelPredictions, title, figSize=[1.5,0.8]):
+ 	#Plots the predicitons of a model
+	fig = plt.figure()
+	#fig = plt.gcf()
+	size = fig.get_size_inches()
+	plt.figure(figsize=(size[0]*figSize[0],size[0]*figSize[1]))
+	gs = gridspec.GridSpec(1,2)
+	plt.suptitle("Utterance: \'Blue\'")
+
+	toPlot=newRSAPreds[0,:]
+	epsilon = 1e-7
+	toPlot = [x+epsilon for x in toPlot]
+	labels=rsaTestNew.meanings
+	locs=range(len(toPlot))
+	plt.bar(locs,toPlot, align='center')
+	plt.xlabel("Meanings")
+	plt.ylabel("Model predictions")
+	plt.title("Utterance: \'Blue\'") 
+	plt.suptitle("Expanded RSA Predictions")
+	plt.xticks(locs, labels)
+	axes = plt.gca()
+	axes.set_ylim([0,1])
+	#plt.figure(2)
+	plt.show()

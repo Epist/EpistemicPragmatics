@@ -4,6 +4,7 @@ import numpy as np
 import utilities as util
 import pragmodsUtils
 from pragmodsUtils import rownorm, safelog, display_matrix
+reload(util)
 
 class PragmaticModel:
 	def __init__(self,
@@ -20,7 +21,6 @@ class PragmaticModel:
 			precision=0.0001): #Default precision for operations that require it
 
 		self.modelType = modelType
-		self.meaningPriors=np.array(meaningPriors)
 		self.utterancePriors=np.array(utterancePriors)
 		#self.mappings=np.matrix(mappings)
 		self.mappings=mappings
@@ -53,11 +53,13 @@ class PragmaticModel:
 			raise ValueError("Invalid model type")
 
 
-		if self.meaningPriors==None:
+		if meaningPriors==None:
 			if self.modelClass=="Epistemic":
 				self.meaningPriors=util.uniformPriors(self.mappings)
 			if self.modelClass=="RSA":
 				self.meaningPriors=util.uniformPriors(self.lexicon)
+		else: self.meaningPriors=np.array(meaningPriors)
+
 
 
 		#if self.modelClass=="RSA":
