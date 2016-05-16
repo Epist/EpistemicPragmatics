@@ -2,6 +2,9 @@
 import numpy as np
 import random
 from pragmodsUtils import rownorm, safelog
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
 
 def entropy(dist):
     return -np.sum(dist*np.log(dist))
@@ -204,4 +207,34 @@ def plotPredicitons(model, modelPredictions, title, figSize=[1.5,0.8]):
 	axes = plt.gca()
 	axes.set_ylim([0,1])
 	#plt.figure(2)
+	plt.show()
+
+def gridPlotPredictions(model, modelPredictions, title):
+	fig = plt.figure()
+	utts=model.utterances
+	means=model.meanings
+	numUtts=len(utts)
+
+	size = fig.get_size_inches()
+	plt.figure(figsize=(size[0]*1,size[1]*1.5))
+	gs = gridspec.GridSpec(numUtts,1)
+	plt.suptitle(title, fontsize=14, fontweight='bold')
+	for i in range(numUtts):
+	    toPlot=modelPredictions[i,:]
+	    epsilon = 1e-7
+	    toPlot = [x+epsilon for x in toPlot]
+	    locs=range(len(toPlot))
+	    ax = plt.subplot(gs[i])
+	    ax.bar(locs,toPlot, align='center')
+	    #ax.set_xlabel("Meanings")
+	    #ax.set_ylabel("Model predictions")
+	    if i==numUtts-1:
+	        plt.xticks(locs, means)
+	    else: ax.xaxis.set_visible(False)
+	    ax.set_title(utts[i]) 
+	    axes = plt.gca()
+	    axes.set_ylim([0,1])
+	plt.xlabel("Meanings")
+	plt.ylabel("Model predictions", position=[0,numUtts/2.0])
+
 	plt.show()
