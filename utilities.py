@@ -209,7 +209,15 @@ def plotPredicitons(model, modelPredictions, title, figSize=[1.5,0.8]):
 	#plt.figure(2)
 	plt.show()
 
-def gridPlotPredictions(model, modelPredictions, title, filename=None):
+def customColors():
+	my_colors = [(33, 150, 243), (244, 67, 54), (76, 175, 80), (103, 58, 183), (255, 193, 7)]
+	for i in range(len(my_colors)):
+		r, g, b = my_colors[i]
+		my_colors[i] = (r / 255., g / 255., b / 255.)
+	return my_colors
+
+def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColor=False):
+
 	fig = plt.figure()
 	utts=model.utterances
 	means=model.meanings
@@ -225,7 +233,10 @@ def gridPlotPredictions(model, modelPredictions, title, filename=None):
 	    toPlot = [x+epsilon for x in toPlot]
 	    locs=range(len(toPlot))
 	    ax = plt.subplot(gs[i])
-	    ax.bar(locs,toPlot, align='center')
+	    if multiColor==True:
+	    	my_colors = customColors()
+	    	ax.bar(locs,toPlot, align='center', color=my_colors)
+	    else: ax.bar(locs,toPlot, align='center')
 	    #ax.set_xlabel("Meanings")
 	    #ax.set_ylabel("Model predictions")
 	    if i==numUtts-1:
