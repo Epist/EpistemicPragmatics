@@ -209,7 +209,7 @@ def plotPredicitons(model, modelPredictions, title, figSize=[1.5,0.8]):
 	#plt.figure(2)
 	plt.show()
 
-def gridPlotPredictions(model, modelPredictions, title):
+def gridPlotPredictions(model, modelPredictions, title, filename=None):
 	fig = plt.figure()
 	utts=model.utterances
 	means=model.meanings
@@ -236,5 +236,8 @@ def gridPlotPredictions(model, modelPredictions, title):
 	    axes.set_ylim([0,1])
 	plt.xlabel("Meanings")
 	plt.ylabel("Model predictions", position=[0,numUtts/2.0])
+
+	if filename!=None:
+		plt.savefig(filename, bbox_inches='tight',  dpi=400)
 
 	plt.show()
