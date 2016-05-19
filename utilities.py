@@ -216,7 +216,7 @@ def customColors():
 		my_colors[i] = (r / 255., g / 255., b / 255.)
 	return my_colors
 
-def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColor=False):
+def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColor=False, figureSize=[1,1.5]):
 
 	fig = plt.figure()
 	utts=model.utterances
@@ -224,7 +224,7 @@ def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColo
 	numUtts=len(utts)
 
 	size = fig.get_size_inches()
-	plt.figure(figsize=(size[0]*1,size[1]*1.5))
+	plt.figure(figsize=(size[0]*figureSize[0],size[1]*figureSize[1]))
 	gs = gridspec.GridSpec(numUtts,1)
 	plt.suptitle(title, fontsize=14, fontweight='bold')
 	for i in range(numUtts):
