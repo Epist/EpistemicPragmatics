@@ -216,7 +216,7 @@ def customColors():
 		my_colors[i] = (r / 255., g / 255., b / 255.)
 	return my_colors
 
-def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColor=False, figureSize=[1,1.5]):
+def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColor=False, figureScale=[1,1.5]):
 
 	fig = plt.figure()
 	utts=model.utterances
@@ -224,7 +224,7 @@ def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColo
 	numUtts=len(utts)
 
 	size = fig.get_size_inches()
-	plt.figure(figsize=(size[0]*figureSize[0],size[1]*figureSize[1]))
+	plt.figure(figsize=(size[0]*figureScale[0],size[1]*figureScale[1]))
 	gs = gridspec.GridSpec(numUtts,1)
 	plt.suptitle(title, fontsize=14, fontweight='bold')
 	for i in range(numUtts):
@@ -245,8 +245,8 @@ def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColo
 	    ax.set_title(utts[i]) 
 	    axes = plt.gca()
 	    axes.set_ylim([0,1])
-	plt.xlabel("Meanings")
-	plt.ylabel("Model predictions", position=[0,numUtts/2.0])
+	plt.xlabel("Referents")
+	plt.ylabel("Probability of referent given utterance", position=[0,numUtts/2.0])
 
 	if filename!=None:
 		plt.savefig(filename, bbox_inches='tight',  dpi=400)
