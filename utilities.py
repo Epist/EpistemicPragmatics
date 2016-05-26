@@ -249,6 +249,6 @@ def gridPlotPredictions(model, modelPredictions, title, filename=None, multiColo
 	plt.ylabel("Probability of referent given utterance", position=[0,numUtts/2.0])
 
 	if filename!=None:
-		plt.savefig(filename, bbox_inches='tight',  dpi=400)
+		plt.savefig("~/figs/"+filename, bbox_inches='tight',  dpi=400)
 
 	plt.show()
